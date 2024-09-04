@@ -31,7 +31,6 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Code after DOM is loaded");
 
 
-    }
 
 
 
