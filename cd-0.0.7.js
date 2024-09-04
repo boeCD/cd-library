@@ -5,7 +5,7 @@ const logger = {
         const body = document.querySelector('body');
         // Check if the body has the attribute cd-debug="true"
         if (body && body.getAttribute('cd-debug') === 'true') {
-            console.log(message);
+            console.log("🐙🐙🐙🐙 ",message);
         }
     }
 };
