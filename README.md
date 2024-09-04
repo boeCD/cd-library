@@ -1,38 +1,131 @@
-# JavaScript DOM Event Library
 
-This is a simple JavaScript library that allows you to execute code both **before** and **after** the website's DOM is loaded.
+# JavaScript Utility Library
+
+**Version**: 0.0.1
+
+This is a JavaScript utility library that performs various actions such as running code before and after the DOM is loaded, setting favicons based on the user's theme preference, adding click event listeners to mirrored elements, and converting CMS dates to a readable format.
 
 ## Features
 
-- **Pre-DOM Execution**: Code can be executed immediately when the script is loaded, even before the DOM is fully ready.
-- **Post-DOM Execution**: Code can be executed as soon as the DOM is fully loaded, using the `DOMContentLoaded` event listener.
+1. **Pre-DOM Load Code Execution**: Execute code immediately upon loading, before the DOM is fully parsed.
+2. **Dark Mode Favicon**: Dynamically set favicons based on the user's color scheme (dark or light mode).
+3. **Mirror Click Listeners**: Automatically forward click events from one element to another.
+4. **CMS Date Conversion**: Converts dates stored in an odd format into a human-readable format.
 
-## Usage
+---
 
-### 1. Include the Script
+## 1. Pre-DOM Load Code Execution
 
-To use this JavaScript library, include the script in your HTML file as follows:
+This code runs before the DOM is fully loaded. It is useful for initializing variables or logging pre-DOM events.
+
+```javascript
+(function() {
+    console.log("🌴🌴🌴🌴🌴🌴Code before DOM is loaded");
+})();
+```
+
+---
+
+## 2. Dynamic Favicon Based on Theme
+
+This function dynamically sets the favicon depending on whether the user has a light or dark theme. It uses the `prefers-color-scheme` media query to detect the user's theme preference.
+
+### Usage:
+
+```javascript
+setFaviconBasedOnTheme(lightModeIcon, darkModeIcon);
+```
+
+### Parameters:
+- **`lightModeIcon`**: URL for the light mode favicon.
+- **`darkModeIcon`**: URL for the dark mode favicon.
+
+### Example:
+
+```javascript
+setFaviconBasedOnTheme(
+    'https://cdn.example.com/light-mode-icon.png',
+    'https://cdn.example.com/dark-mode-icon.png'
+);
+```
+
+---
+
+## 3. Mirror Click Listeners
+
+This function adds a click event listener to elements that have a `mirror-click` attribute. When clicked, it triggers a click on the target element specified in the attribute.
+
+### Usage:
+
+1. Add the `mirror-click` attribute to any HTML element and specify the target element's ID.
+2. Call the `addMirrorClickListeners()` function.
+
+### Example:
+
+```html
+<button mirror-click="target-element">Click Me</button>
+<div id="target-element">Target Element</div>
+```
+
+```javascript
+addMirrorClickListeners();
+```
+
+---
+
+## 4. CMS Date Conversion
+
+This function converts dates in a non-standard format into a readable format (`DD/MM/YYYY HH:mm`) and updates the text content of elements with the `data-date` attribute.
+
+### Usage:
+
+1. Add the `data-date` attribute to any HTML element that contains a date string.
+2. Call the `cmsDateConversion()` function to convert the dates.
+
+### Example:
+
+```html
+<div data-date="2024-09-03T10:15:00Z">2024-09-03T10:15:00Z</div>
+```
+
+```javascript
+cmsDateConversion();
+```
+
+The date will be converted and displayed as `03/09/2024 10:15`.
+
+---
+
+## 5. Post-DOM Load Code Execution
+
+The following code runs once the DOM has fully loaded and is ready. You can add your custom code inside this `DOMContentLoaded` event listener.
+
+```javascript
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("Code after DOM is loaded");
+});
+```
+
+---
+
+## Installation
+
+You can include this script in your HTML file as follows:
 
 ```html
 <script src="path/to/your-library.js"></script>
 ```
-## Dynamic Favicon Based on Theme
 
-This section describes how to dynamically change the favicon based on the user's color scheme preference (light or dark mode).
+## License
 
-### Function: `setFaviconBasedOnTheme(lightModeIcon, darkModeIcon)`
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-This function sets the favicon of the website depending on whether the user has enabled light or dark mode on their device. It uses the `prefers-color-scheme` media query to detect the user's preference.
+## Contributing
 
-#### Parameters:
-- **`lightModeIcon`**: A string URL pointing to the favicon to be used for light mode.
-- **`darkModeIcon`**: A string URL pointing to the favicon to be used for dark mode.
+Feel free to contribute by opening an issue or submitting a pull request. To contribute:
 
-#### Example Usage:
-
-```javascript
-setFaviconBasedOnTheme(
-    'https://cdn.prod.website-files.com/66b48863d6ba7c12593a03e5/66d5bcb6b0b3a125ce117c5f_render-studio-256-black.png',
-    'https://cdn.prod.website-files.com/66b48863d6ba7c12593a03e5/66d5bcb6a839ec800fa8dece_render-studio-256png.png'
-);
-```
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-branch`).
+3. Make your changes and commit them (`git commit -m 'Add new feature'`).
+4. Push your branch (`git push origin feature-branch`).
+5. Open a pull request.
