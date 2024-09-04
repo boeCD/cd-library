@@ -1,10 +1,10 @@
-//Version 0.0.6
+//Version 0.0.8
 // Code that runs before DOM is fully loaded
 const logger = {
     log: function(message) {
-        const body = document.querySelector('body');
+        const body = localStorage.getItem("cd-debug");
         // Check if the body has the attribute cd-debug="true"
-        if (body && body.getAttribute('cd-debug') === 'true') {
+        if (body) {
             console.log("🐙🐙🐙🐙 ",message);
         }
     }
