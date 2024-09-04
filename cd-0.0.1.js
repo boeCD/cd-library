@@ -1,3 +1,4 @@
+//Version 0.0.1
 // Code that runs before DOM is fully loaded
 (function() {
     console.log("Code before DOM is loaded");
