@@ -1,11 +1,23 @@
-//Version 0.0.1
+//Version 0.0.6
 // Code that runs before DOM is fully loaded
+const logger = {
+    log: function(message) {
+        const body = document.querySelector('body');
+        // Check if the body has the attribute cd-debug="true"
+        if (body && body.getAttribute('cd-debug') === 'true') {
+            console.log(message);
+        }
+    }
+};
+
 (function() {
-    console.log("🌴🌴🌴🌴🌴🌴Code before DOM is loaded");
+    logger.log("🌴🌴🌴🌴🌴🌴Code before DOM is loaded");
 })();
 
     //Darkmode for Favicon
     function setFaviconBasedOnTheme(lightModeIcon, darkModeIcon) {
+        logger.log("dynamic favicon init")
+
     // Function to set favicon
     function setFavicon(url) {
         var link = document.querySelector("link[rel~='icon']");
@@ -39,7 +51,7 @@
             const targetElement = document.getElementById(targetId);
             if (targetElement) {
               targetElement.click();
-              console.log("targetElement" , {targetElement} , "element", {element})
+              logger.log("targetElement" , {targetElement} , "element", {element})
             }
           });
         });
@@ -49,6 +61,7 @@
 function cmsDateConversion(){
 //Date conversion
 document.querySelectorAll('[data-date]').forEach(function(element) {
+    logger.log("data-date init")
     var dateText = element.textContent;
     var date = new Date(dateText);
     
@@ -69,7 +82,7 @@ document.querySelectorAll('[data-date]').forEach(function(element) {
 
 // Code that runs after DOM is fully loaded
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("Code after DOM is loaded");
+    logger.log("Code after DOM is loaded");
 
 //end of DOMFinishedLoading
 });
