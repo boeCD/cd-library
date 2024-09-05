@@ -11,7 +11,7 @@ const logger = {
 };
 
 (function() {
-    logger.log("🌴🌴🌴🌴🌴🌴Code before DOM is loaded");
+    logger.log("Code before DOM is loaded");
 })();
 
     //Darkmode for Favicon
@@ -104,13 +104,15 @@ function initLenisLibrary({ duration = 1.2, easing = (t) => Math.min(1, 1.001 - 
             }
 
             requestAnimationFrame(raf);
+        
         }
-
+    initLenis(); // Call the init function
+    logger.log('Lenis First INIT', event);
         // Add event listener to body
         document.body.addEventListener('click', function(event) {
             setTimeout(function() {
                 initLenis(); // Call the init function
-                logger.log('Lenis INIT', event);
+                logger.log('Lenis click INIT', event);
             }, 50);
         });
     });
