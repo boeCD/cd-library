@@ -78,8 +78,46 @@ document.querySelectorAll('[data-date]').forEach(function(element) {
 
 }
 
+// ***** Lenis Smooth Scroll *****
+function loadLenisCDN(callback) {
+    const script = document.createElement('script');
+    script.src = "https://cdn.jsdelivr.net/npm/@studio-freight/lenis@latest";
+    script.defer = true;
+    script.onload = callback; // Initialize Lenis after the script is loaded
+    document.head.appendChild(script);
+}
+
+function initLenisLibrary({ duration = 1.2, easing = (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), direction = 'vertical', smooth = true, smoothTouch = false }) {
+    loadLenisCDN(function() {
+        function initLenis() {
+            const lenis = new Lenis({
+                duration,
+                easing,
+                direction,
+                smooth,
+                smoothTouch,
+            });
+
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+
+            requestAnimationFrame(raf);
+        }
+
+        // Add event listener to body
+        document.body.addEventListener('click', function(event) {
+            setTimeout(function() {
+                initLenis(); // Call the init function
+                console.log('📣📣📣📣 Lenis INIT', event);
+            }, 50);
+        });
+    });
+}
 
 
+//______________________________________________________________________________________________________________________________________________________________________________________________________________________________
 // Code that runs after DOM is fully loaded
 document.addEventListener("DOMContentLoaded", function() {
     logger.log("Code after DOM is loaded");
