@@ -1,4 +1,4 @@
-//Version 0.0.8
+//Version 0.0.19
 // Code that runs before DOM is fully loaded
 const logger = {
     log: function(message) {
