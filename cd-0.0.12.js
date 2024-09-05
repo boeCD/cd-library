@@ -1,14 +1,10 @@
 //Version 0.0.8
+https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/logger.js
 // Code that runs before DOM is fully loaded
-const logger = {
-    log: function(message) {
-        const body = localStorage.getItem("cd-debug");
-        // Check if the body has the attribute cd-debug="true"
-        if (body) {
-            console.log("🐙🐙🐙🐙 ",message);
-        }
-    }
-};
+import { logger } from 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/logger.js';
+
+logger.log("Log message from imported logger");
+
 
 (function() {
     logger.log("Code before DOM is loaded");
