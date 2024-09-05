@@ -1,7 +1,7 @@
 //Version 0.0.8
 https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/logger.js
 // Code that runs before DOM is fully loaded
-import { logger } from 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/logger.js';
+import { logger } from 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/logger-0.0.1.js';
 
 logger.log("Log message from imported logger");
 
