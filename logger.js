@@ -1,4 +1,4 @@
-const logger = {
+export const logger = {
     log: function(message) {
         this._checkAndLog("log", message);
     },
@@ -42,17 +42,3 @@ const logger = {
         }
     }
 };
-
-// Example usage:
-/*
-logger.log("Log message");
-logger.warn("Warning message");
-logger.trace("Trace message");
-logger.group("Grouped logs");
-logger.log("Inside group");
-logger.groupEnd();
-logger.time("Timer");
-setTimeout(() => logger.timeEnd("Timer"), 1000);
-logger.count("counter");
-logger.countReset("counter");
-*/
