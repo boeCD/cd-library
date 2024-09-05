@@ -77,7 +77,6 @@ document.querySelectorAll('[data-date]').forEach(function(element) {
 function loadLenisCDN(callback) {
     const script = document.createElement('script');
     script.src = "https://cdn.jsdelivr.net/npm/@studio-freight/lenis@latest";
-    script.defer = true;
     script.onload = callback; // Initialize Lenis after the script is loaded
     document.head.appendChild(script);
 }
