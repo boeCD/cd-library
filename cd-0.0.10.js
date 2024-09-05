@@ -110,7 +110,7 @@ function initLenisLibrary({ duration = 1.2, easing = (t) => Math.min(1, 1.001 - 
         document.body.addEventListener('click', function(event) {
             setTimeout(function() {
                 initLenis(); // Call the init function
-                console.log('📣📣📣📣 Lenis INIT', event);
+                logger.log('Lenis INIT', event);
             }, 50);
         });
     });
