@@ -14,7 +14,28 @@ const logger = {
     debug: function(message) {
         this._checkAndLog("debug", message);
     },
-    _checkAndLog: function(type, message) {
+    trace: function(message) {
+        this._checkAndLog("trace", message);
+    },
+    group: function(label) {
+        this._checkAndLog("group", label);
+    },
+    groupEnd: function() {
+        this._checkAndLog("groupEnd");
+    },
+    time: function(label) {
+        this._checkAndLog("time", label);
+    },
+    timeEnd: function(label) {
+        this._checkAndLog("timeEnd", label);
+    },
+    count: function(label) {
+        this._checkAndLog("count", label);
+    },
+    countReset: function(label) {
+        this._checkAndLog("countReset", label);
+    },
+    _checkAndLog: function(type, message = "") {
         const body = localStorage.getItem("cd-debug");
         if (body) {
             console[type]("🐙🐙🐙🐙 ", message);
@@ -23,8 +44,13 @@ const logger = {
 };
 
 // Example usage:
-logger.log("This is a log message.");
-logger.warn("This is a warning message.");
-logger.error("This is an error message.");
-logger.info("This is an info message.");
-logger.debug("This is a debug message.");
+logger.log("Log message");
+logger.warn("Warning message");
+logger.trace("Trace message");
+logger.group("Grouped logs");
+logger.log("Inside group");
+logger.groupEnd();
+logger.time("Timer");
+setTimeout(() => logger.timeEnd("Timer"), 1000);
+logger.count("counter");
+logger.countReset("counter");
