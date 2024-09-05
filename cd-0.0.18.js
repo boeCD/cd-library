@@ -114,47 +114,44 @@ document.querySelectorAll('[data-date]').forEach(function(element) {
 }
 
 // ***** Lenis Smooth Scroll *****
+function loadLenisCDN(callback) {
+    const script = document.createElement('script');
+    script.src = "https://cdn.jsdelivr.net/npm/@studio-freight/lenis@latest";
+    script.defer = true;
+    script.onload = callback; // Initialize Lenis after the script is loaded
+    document.head.appendChild(script);
+}
+
 function initLenisLibrary({ duration = 1.2, easing = (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), direction = 'vertical', smooth = true, smoothTouch = false }) {
-    // Load the Lenis script from the CDN asynchronously
     loadLenisCDN(function() {
-        // After Lenis is loaded, initialize it
-        const lenis = new Lenis({
-            duration,
-            easing,
-            direction,
-            smooth,
-            smoothTouch,
-        });
+        function initLenis() {
+            const lenis = new Lenis({
+                duration,
+                easing,
+                direction,
+                smooth,
+                smoothTouch,
+            });
 
-        // Request animation frame to keep Lenis smooth scroll active
-        function raf(time) {
-            lenis.raf(time);
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+
             requestAnimationFrame(raf);
+        
         }
-
-        requestAnimationFrame(raf);
-
-        logger.log('Lenis First INIT');
-
-        // Re-initialize Lenis on body clicks (if necessary)
+    initLenis(); // Call the init function
+    logger.log('Lenis First INIT', event);
+        // Add event listener to body
         document.body.addEventListener('click', function(event) {
             setTimeout(function() {
-                lenis.raf(); // Re-activate the Lenis scroll effect if needed
+                initLenis(); // Call the init function
                 logger.log('Lenis click INIT', event);
             }, 50);
         });
     });
 }
-
-// Now you can call this after the DOM is loaded or wherever appropriate
-document.addEventListener('DOMContentLoaded', function () {
-    initLenisLibrary({
-        duration: 1.5,
-        direction: 'horizontal',
-        smooth: true,
-        smoothTouch: true
-    });
-});
 
 
 
