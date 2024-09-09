@@ -1,131 +1,89 @@
 
-# JavaScript Utility Library
+# JS Utility Library Documentation
 
-**Version**: 0.0.1
+Version 0.0.19
 
-This is a JavaScript utility library that performs various actions such as running code before and after the DOM is loaded, setting favicons based on the user's theme preference, adding click event listeners to mirrored elements, and converting CMS dates to a readable format.
+## Overview
 
-## Features
+This JavaScript utility library provides a collection of useful custom attributes that enhance the functionality of your web pages. Each attribute can be used directly in your HTML markup, and the corresponding JavaScript functions will handle behavior such as class toggling, lazy loading, copying text, smooth scrolling, and more.
 
-1. **Pre-DOM Load Code Execution**: Execute code immediately upon loading, before the DOM is fully parsed.
-2. **Dark Mode Favicon**: Dynamically set favicons based on the user's color scheme (dark or light mode).
-3. **Mirror Click Listeners**: Automatically forward click events from one element to another.
-4. **CMS Date Conversion**: Converts dates stored in an odd format into a human-readable format.
+### Custom Attributes
 
----
+#### 1. `boe-toggle-class="className"`
+Toggles a class on an element when it is clicked. Use this to dynamically change the style or behavior of elements based on user interaction.
 
-## 1. Pre-DOM Load Code Execution
-
-This code runs before the DOM is fully loaded. It is useful for initializing variables or logging pre-DOM events.
-
-```javascript
-(function() {
-    console.log("🌴🌴🌴🌴🌴🌴Code before DOM is loaded");
-})();
-```
-
----
-
-## 2. Dynamic Favicon Based on Theme
-
-This function dynamically sets the favicon depending on whether the user has a light or dark theme. It uses the `prefers-color-scheme` media query to detect the user's theme preference.
-
-### Usage:
-
-```javascript
-setFaviconBasedOnTheme(lightModeIcon, darkModeIcon);
-```
-
-### Parameters:
-- **`lightModeIcon`**: URL for the light mode favicon.
-- **`darkModeIcon`**: URL for the dark mode favicon.
-
-### Example:
-
-```javascript
-setFaviconBasedOnTheme(
-    'https://cdn.example.com/light-mode-icon.png',
-    'https://cdn.example.com/dark-mode-icon.png'
-);
-```
-
----
-
-## 3. Mirror Click Listeners
-
-This function adds a click event listener to elements that have a `mirror-click` attribute. When clicked, it triggers a click on the target element specified in the attribute.
-
-### Usage:
-
-1. Add the `mirror-click` attribute to any HTML element and specify the target element's ID.
-2. Call the `addMirrorClickListeners()` function.
-
-### Example:
-
+#### Example:
 ```html
-<button mirror-click="target-element">Click Me</button>
-<div id="target-element">Target Element</div>
+<div boe-toggle-class="active">Click me to toggle class</div>
 ```
 
-```javascript
-addMirrorClickListeners();
-```
+#### 2. `boe-copy-text="elementId"`
+Copies the text content from the element with the specified ID to the clipboard when clicked.
 
----
-
-## 4. CMS Date Conversion
-
-This function converts dates in a non-standard format into a readable format (`DD/MM/YYYY HH:mm`) and updates the text content of elements with the `data-date` attribute.
-
-### Usage:
-
-1. Add the `data-date` attribute to any HTML element that contains a date string.
-2. Call the `cmsDateConversion()` function to convert the dates.
-
-### Example:
-
+#### Example:
 ```html
-<div data-date="2024-09-03T10:15:00Z">2024-09-03T10:15:00Z</div>
+<button boe-copy-text="text-element">Copy Text</button>
+<p id="text-element">This is the text to copy.</p>
 ```
 
-```javascript
-cmsDateConversion();
-```
+#### 3. `boe-lazy-load="imageURL"`
+Lazy loads an image when the element scrolls into view, improving performance by deferring the loading of images until needed.
 
-The date will be converted and displayed as `03/09/2024 10:15`.
-
----
-
-## 5. Post-DOM Load Code Execution
-
-The following code runs once the DOM has fully loaded and is ready. You can add your custom code inside this `DOMContentLoaded` event listener.
-
-```javascript
-document.addEventListener("DOMContentLoaded", function() {
-    console.log("Code after DOM is loaded");
-});
-```
-
----
-
-## Installation
-
-You can include this script in your HTML file as follows:
-
+#### Example:
 ```html
-<script src="path/to/your-library.js"></script>
+<img boe-lazy-load="path/to/image.jpg" alt="Lazy loaded image">
 ```
 
-## License
+#### 4. `boe-scroll-to="elementId"`
+Scrolls smoothly to the element with the specified ID when clicked.
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+#### Example:
+```html
+<a boe-scroll-to="section1">Scroll to Section 1</a>
+<div id="section1">This is Section 1</div>
+```
 
-## Contributing
+#### 5. `boe-show-hide="elementId"`
+Toggles the visibility of the target element when clicked. This can be used to show or hide content dynamically.
 
-Feel free to contribute by opening an issue or submitting a pull request. To contribute:
+#### Example:
+```html
+<button boe-show-hide="targetElement">Toggle Visibility</button>
+<div id="targetElement" style="display: none;">This is the target element.</div>
+```
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Make your changes and commit them (`git commit -m 'Add new feature'`).
-4. Push your branch (`git push origin feature-branch`).
-5. Open a pull request.
+## Additional Features
+
+### Logger Function
+The logger function included in this library replaces standard `console.log` calls with custom logging. The logger logs messages conditionally based on a `localStorage` flag, which can be set to toggle debugging logs.
+
+### Favicon Switching for Dark Mode
+This function dynamically switches the favicon based on the user's dark mode preference. This improves user experience and visual consistency with different themes.
+
+### CMS Date Conversion
+Automatically converts and formats CMS-generated dates to a human-readable format in the format `DD/MM/YYYY HH:mm` for elements with the `data-date` attribute.
+
+#### Example:
+```html
+<span data-date="2023-09-09T12:30:00Z">2023-09-09T12:30:00Z</span>
+```
+
+### Footer Year Setter
+Automatically sets the current year for elements with the `footer-date` attribute. This is useful for setting copyright years dynamically.
+
+#### Example:
+```html
+<footer>
+    <span footer-date=""></span> &copy; All Rights Reserved
+</footer>
+```
+
+### Lenis Smooth Scrolling
+Smooth scrolling functionality is added via the Lenis library. This improves the overall UX of your page, providing a more fluid scrolling experience.
+
+## How to Use
+
+1. Include this JavaScript in your project.
+2. Add the appropriate custom attributes to your HTML elements as needed.
+3. Enjoy the enhanced functionality!
+
