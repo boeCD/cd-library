@@ -1,4 +1,39 @@
-//Version 0.0.19
+function createStyleTag() {
+    const cssText = `
+    .dropdown-list w-dropdown-list { 
+        inset: none !
+    }
+
+    @media screen and (max-width: 1024px) {
+        .other-material-input {
+            width: 100%;
+            height: auto;
+        }
+    }
+    @media screen and (max-width: 990px) {
+    .other-material-input {
+        width: 100%;
+        height: 0px;
+    }
+}
+}
+    `;
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.textContent = cssText;
+    document.head.appendChild(style);
+}
+
+createStyleTag();
+
+window.addEventListener('load', () => {
+    document.querySelectorAll('.input-wrapper').forEach(wrapper => {
+        wrapper.removeAttribute('data-input-error');
+    });
+});
+
+
+//Version 0.0.21
 // Code that runs before DOM is fully loaded
 const logger = {
     log: function(message) {
@@ -44,7 +79,6 @@ const logger = {
         }
     }
 };
-
 
 (function() {
     logger.log("Code before DOM is loaded");
@@ -114,6 +148,35 @@ document.querySelectorAll('[data-date]').forEach(function(element) {
 
 }
 
+//form input highlights with CSS selectors -> .form-input_highlight input:required:invalid
+function addFormInputHighlight() {
+  // Loop through all forms on the page
+  document.querySelectorAll('form').forEach(function(form) {
+    // Find the submit button inside the form
+    const submitButton = form.querySelector('input[type="submit"], button[type="submit"]');
+    
+    
+    // Add click event listener to the submit button
+    if (submitButton) {
+      submitButton.addEventListener('click', function() {
+        // Add the 'form-input_highlight' class to the form block when submit button is clicked
+        form.classList.add('form-input_highlight');
+      });
+    }
+
+    // Find buttons with data-highlight-required="button"
+    const highlightButtons = form.querySelectorAll('[data-highlight-required="button"]');
+    
+    // Add click event listener to these buttons
+    highlightButtons.forEach(function(button) {
+      button.addEventListener('click', function() {
+        form.classList.add('form-input_highlight');
+      });
+    });
+  });
+}
+
+
 // ***** Lenis Smooth Scroll *****
 function loadLenisCDN(callback) {
     const script = document.createElement('script');
@@ -167,8 +230,35 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener("DOMContentLoaded", function() {
     logger.log("Code after DOM is loaded");
 
-//end of DOMFinishedLoading
-});
+    //Before After Slider
+    document.querySelectorAll('[data-before-after="wrapper"]').forEach(wrapper => {
+        try {
+            const beforeElement = wrapper.querySelector('[data-before-after="before"]');
+            const slider = wrapper.querySelector('[data-before-after="slider"]');
+            
+            if (!beforeElement) {
+                logger.log('Error: "before" element not found inside wrapper', wrapper);
+                return; // Skip this wrapper if "before" element is missing
+            }
+    
+            if (!slider) {
+                logger.log('Error: "slider" element not found inside wrapper', wrapper);
+                return; // Skip this wrapper if "slider" element is missing
+            }
+    
+            // Set initial width based on slider value
+            beforeElement.style.width = slider.value + '%';
+    
+            // Update width when slider value changes
+            slider.addEventListener('input', function() {
+                beforeElement.style.width = this.value + '%';
+            });
+    
+        } catch (error) {
+            logger.log('Error processing wrapper:', wrapper, error);
+        }
+    });
+
 
 
 // Handle boe-toggle-class: Toggles a class on the element when clicked
@@ -241,4 +331,8 @@ document.querySelectorAll('[boe-show-hide]').forEach(el => {
             logger.log('Error toggling visibility:', error);
         }
     });
+});
+
+
+//end of DOMFinishedLoading
 });

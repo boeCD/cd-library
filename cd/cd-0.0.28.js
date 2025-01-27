@@ -1,4 +1,61 @@
-//Version 0.0.19
+function createStyleTag() {
+    const cssText = `
+    .dropdown-list w-dropdown-list { 
+        inset: none !
+    }
+
+    @media screen and (max-width: 1024px) {
+        .other-material-input {
+            width: 100%;
+            height: auto;
+        }
+    }
+    @media screen and (max-width: 990px) {
+    .other-material-input {
+        width: 100%;
+        height: 0px;
+    }
+}
+}
+    `;
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.textContent = cssText;
+    document.head.appendChild(style);
+}
+
+createStyleTag();
+
+window.addEventListener('load', () => {
+    document.querySelectorAll('.input-wrapper').forEach(wrapper => {
+        wrapper.removeAttribute('data-input-error');
+    });
+});
+
+//select all instances data-tab="setDefault" and store in variable and adapt the above code. put the script from above into a function and refine it to accept the tab number as a parameter
+document.querySelectorAll('[data-tab="setDefault"]').forEach(function(tab) {
+    logger.log("setDefault tab for: ", tab);
+    //collect the data-tab attribute value and store in variable tabNumber if setDefault is set to 1
+    var tabNumber = tab.getAttribute('data-tab-setDefault');
+    setDefaultTab(tab, tabNumber);
+});
+
+function setDefaultTab(dataTab, tabNumber) {
+    // Remove default tab and set to none
+    dataTab.querySelectorAll(".w-tab-link").forEach(function(link) {
+        link.classList.remove("w--current");
+    });
+
+    dataTab.querySelectorAll(".w-tab-pane").forEach(function(pane) {
+        pane.classList.remove("w--tab-active");
+    });
+
+    // Make the nth-child the default tab
+    dataTab.querySelector(".w-tab-link:nth-child(" + tabNumber + ")").classList.add("w--current");
+    dataTab.querySelector(".w-tab-pane:nth-child(" + tabNumber + ")").classList.add("w--tab-active");
+}
+
+//Version 0.0.21
 // Code that runs before DOM is fully loaded
 const logger = {
     log: function(message) {
@@ -44,7 +101,6 @@ const logger = {
         }
     }
 };
-
 
 (function() {
     logger.log("Code before DOM is loaded");
@@ -114,6 +170,31 @@ document.querySelectorAll('[data-date]').forEach(function(element) {
 
 }
 
+//form input highlights with CSS selectors -> .form-input_highlight input:required:invalid
+function addFormInputHighlight() {
+    // Loop through all forms on the page
+    document.querySelectorAll('form').forEach(function(form) {
+      // Find the submit button inside the form
+      const submitButton = form.querySelector('input[type="submit"], button[type="submit"]');
+      
+      // Add click event listener to the submit button
+      if (submitButton) {
+        submitButton.addEventListener('click', function() {
+          // Add the 'form-input_highlight' class to the form block when submit button is clicked
+          form.classList.add('form-input_highlight');
+        });
+      }
+      // do the same eventlistener for each data-highlight-required="button"
+        form.querySelectorAll('[data-highlight-required="button"]').forEach(function(button) {
+            button.addEventListener('click', function() {
+            form.classList.add('form-input_highlight');
+            });
+        });
+
+    });
+  }
+
+
 // ***** Lenis Smooth Scroll *****
 function loadLenisCDN(callback) {
     const script = document.createElement('script');
@@ -167,8 +248,35 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener("DOMContentLoaded", function() {
     logger.log("Code after DOM is loaded");
 
-//end of DOMFinishedLoading
-});
+    //Before After Slider
+    document.querySelectorAll('[data-before-after="wrapper"]').forEach(wrapper => {
+        try {
+            const beforeElement = wrapper.querySelector('[data-before-after="before"]');
+            const slider = wrapper.querySelector('[data-before-after="slider"]');
+            
+            if (!beforeElement) {
+                logger.log('Error: "before" element not found inside wrapper', wrapper);
+                return; // Skip this wrapper if "before" element is missing
+            }
+    
+            if (!slider) {
+                logger.log('Error: "slider" element not found inside wrapper', wrapper);
+                return; // Skip this wrapper if "slider" element is missing
+            }
+    
+            // Set initial width based on slider value
+            beforeElement.style.width = slider.value + '%';
+    
+            // Update width when slider value changes
+            slider.addEventListener('input', function() {
+                beforeElement.style.width = this.value + '%';
+            });
+    
+        } catch (error) {
+            logger.log('Error processing wrapper:', wrapper, error);
+        }
+    });
+
 
 
 // Handle boe-toggle-class: Toggles a class on the element when clicked
@@ -241,4 +349,8 @@ document.querySelectorAll('[boe-show-hide]').forEach(el => {
             logger.log('Error toggling visibility:', error);
         }
     });
+});
+
+
+//end of DOMFinishedLoading
 });
