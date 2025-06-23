@@ -250,6 +250,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     //Before After Slider
     document.querySelectorAll('[data-before-after="wrapper"]').forEach(wrapper => {
+        logger.log('before-after-wrapper: ', this);
         try {
             const beforeElement = wrapper.querySelector('[data-before-after="before"]');
             const slider = wrapper.querySelector('[data-before-after="slider"]');
