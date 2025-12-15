@@ -1,5 +1,5 @@
 /*!
- * WebflowDisplaceSlider v0.3
+ * WebflowDisplaceSlider v0.5
  * Displacement-based slide transitions for selected Webflow sliders.
  * Requires THREE (three.js r134 recommended).
  *
@@ -18,7 +18,7 @@
  *   Displacement map priority for a transition old -> new:
  *     1. if only old has custom -> oldKey
  *     2. if only new has custom -> newKey
- *     3. if both have custom -> newKey
+ *     3. if both have custom   -> newKey
  *     4. slider's data-disp-default
  *     5. global DEFAULT_KEY
  */
@@ -34,46 +34,26 @@
   // CONFIG
   // ---------------------------------------------------------------------------
 
-  // Key used if nothing is defined on slider or images.
   var DEFAULT_KEY = 'height';
 
-  // Displacement map registry.
-  // You already host these here:
-  //   https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/
+  // Displacement map registry (your hosted files)
   var DISP_MAPS = {
-    // Fallback / allrounder
     'default': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/heightMap.png',
-
-    // Clean dot pattern
-    'dot': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/dot.jpg',
-
-    // Liquid / fluid style
-    'fluid': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/fluid.jpg',
-
-    // Height-based displacement (same as default key "height")
-    'height': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/heightMap.png',
-
-    // Organic / noisy
-    'ramen': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/ramen.jpg',
-
-    // Stripe variations
+    'dot':     'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/dot.jpg',
+    'fluid':   'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/fluid.jpg',
+    'height':  'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/heightMap.png',
+    'ramen':   'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/ramen.jpg',
     'strip':   'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/strip.png',
     'stripe1': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/stripe1.png'
   };
 
-  // Polling interval: we just check which slide Webflow marks as active.
-  var POLL_INTERVAL = 200; // ms
+  var POLL_INTERVAL       = 200;   // ms
+  var TRANSITION_DURATION = 1.6;   // seconds
+  var DISPLACE_INTENSITY  = 0.22;  // softer distortion
 
-  // Transition duration in seconds.
-  var TRANSITION_DURATION = 1.2;
-
-  // Displacement intensity.
-  var DISPLACE_INTENSITY = 0.3;
-
-  // Attribute names
-  var ATTR_SLIDER_ENABLE   = 'data-displace-slider';
-  var ATTR_SLIDER_DEFAULT  = 'data-disp-default';
-  var ATTR_IMAGE_MAP       = 'data-disp-map';
+  var ATTR_SLIDER_ENABLE  = 'data-displace-slider';
+  var ATTR_SLIDER_DEFAULT = 'data-disp-default';
+  var ATTR_IMAGE_MAP      = 'data-disp-map';
 
   // ---------------------------------------------------------------------------
   // Slider instance
@@ -84,25 +64,27 @@
     this.mask = sliderEl.querySelector('.w-slider-mask');
     this.slides = Array.prototype.slice.call(sliderEl.querySelectorAll('.w-slide'));
 
-    this.slideImages = [];    // array of image URLs per slide
-    this.slideDispKeys = [];  // array of disp keys per slide (from data-disp-map)
+    this.slideImages   = [];
+    this.slideDispKeys = [];
     this.sliderDefaultKey = sliderEl.getAttribute(ATTR_SLIDER_DEFAULT) || DEFAULT_KEY;
 
     this.activeIndex = 0;
-    this.lastIndex = 0;
+    this.lastIndex   = 0;
     this.isTransitioning = false;
 
     this.renderer = null;
-    this.scene = null;
-    this.camera = null;
+    this.scene    = null;
+    this.camera   = null;
     this.material = null;
-    this.mesh = null;
+    this.mesh     = null;
 
-    this.texCache = {};      // url -> THREE.Texture
-    this.dispTexCache = {};  // key -> THREE.Texture
+    this.texCache     = {}; // url -> THREE.Texture
+    this.dispTexCache = {}; // key -> THREE.Texture
 
-    this.overlay = null;
-    this.pollTimer = null;
+    this.overlay        = null;
+    this.pollTimer      = null;
+    this.containerWidth = 1;
+    this.containerHeight= 1;
 
     this._init();
   }
@@ -136,7 +118,7 @@
     });
 
     this.activeIndex = this._getActiveSlideIndex();
-    this.lastIndex = this.activeIndex;
+    this.lastIndex   = this.activeIndex;
   };
 
   DisplaceSliderInstance.prototype._hideOriginalImages = function () {
@@ -147,6 +129,11 @@
         img.style.pointerEvents = 'none';
       });
     });
+  };
+
+  DisplaceSliderInstance.prototype._updateContainerSize = function () {
+    this.containerWidth  = this.mask.clientWidth  || 1;
+    this.containerHeight = this.mask.clientHeight || 1;
   };
 
   DisplaceSliderInstance.prototype._createOverlay = function () {
@@ -168,8 +155,9 @@
   };
 
   DisplaceSliderInstance.prototype._createThreeScene = function () {
-    var width = this.mask.clientWidth || 10;
-    var height = this.mask.clientHeight || 10;
+    this._updateContainerSize();
+    var width  = this.containerWidth;
+    var height = this.containerHeight;
 
     var renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio || 1);
@@ -189,7 +177,9 @@
       uTexture2:  { value: null },
       uDisp:      { value: null },
       uProgress:  { value: 1.0 },
-      uIntensity: { value: DISPLACE_INTENSITY }
+      uIntensity: { value: DISPLACE_INTENSITY },
+      uScale1:    { value: new THREE.Vector2(1, 1) },
+      uScale2:    { value: new THREE.Vector2(1, 1) }
     };
 
     var vertexShader = [
@@ -200,30 +190,40 @@
       '}'
     ].join('\n');
 
-    // NEW fragment shader: no distortion at 0 and 1 (clean images), max in the middle
+    // object-fit: cover scaling + smooth displacement
     var fragmentShader = [
       'uniform sampler2D uTexture1;',
       'uniform sampler2D uTexture2;',
       'uniform sampler2D uDisp;',
       'uniform float uProgress;',
       'uniform float uIntensity;',
+      'uniform vec2  uScale1;',
+      'uniform vec2  uScale2;',
       'varying vec2 vUv;',
 
       'void main() {',
+      '  vec2 center = vec2(0.5);',
+
+      // base UVs with cover-scaling
+      '  vec2 baseUv1 = (vUv - center) * uScale1 + center;',
+      '  vec2 baseUv2 = (vUv - center) * uScale2 + center;',
+
       '  vec4 disp = texture2D(uDisp, vUv);',
       '  vec2 dispVec = (disp.rg * 2.0 - 1.0);',
 
-      // strength peaks at progress ~0.5 and is 0 at 0 and 1
-      '  float strength = uIntensity * (1.0 - abs(0.5 - uProgress) * 2.0);',
+      // smooth bell-shaped strength (0 at 0/1, max at 0.5)
+      '  float p = uProgress;',
+      '  float bell = 1.0 - pow((p - 0.5) * 2.0, 2.0);',
+      '  bell = max(bell, 0.0);',
+      '  float strength = uIntensity * bell;',
 
-      // old image pushed one way, new image the opposite way
-      '  vec2 uv1 = vUv + dispVec * strength * (1.0 - uProgress);',
-      '  vec2 uv2 = vUv - dispVec * strength * uProgress;',
+      '  vec2 uv1 = baseUv1 + dispVec * strength * (1.0 - p);',
+      '  vec2 uv2 = baseUv2 - dispVec * strength * p;',
 
       '  vec4 tex1 = texture2D(uTexture1, uv1);',
       '  vec4 tex2 = texture2D(uTexture2, uv2);',
 
-      '  gl_FragColor = mix(tex1, tex2, uProgress);',
+      '  gl_FragColor = mix(tex1, tex2, p);',
       '}'
     ].join('\n');
 
@@ -239,7 +239,6 @@
     this.material = material;
     this.mesh = mesh;
 
-    // Initial: show current slide as static image
     var baseImg = this.slideImages[this.activeIndex] || this.slideImages[0];
     this._setStaticImage(baseImg);
   };
@@ -250,14 +249,13 @@
 
   DisplaceSliderInstance.prototype._loadTexture = function (url, cb) {
     var self = this;
-    if (!url) {
-      cb(null);
-      return;
-    }
+    if (!url) { cb(null); return; }
+
     if (this.texCache[url]) {
       cb(this.texCache[url]);
       return;
     }
+
     var loader = new THREE.TextureLoader();
     loader.load(
       url,
@@ -308,17 +306,56 @@
     );
   };
 
+  // ---------------------------------------------------------------------------
+  // Cover-scaling helpers
+  // ---------------------------------------------------------------------------
+
+  DisplaceSliderInstance.prototype._computeScaleForTex = function (tex) {
+    if (!tex || !tex.image || !this.containerWidth || !this.containerHeight) {
+      return { x: 1, y: 1 };
+    }
+    var imgW = tex.image.width  || 1;
+    var imgH = tex.image.height || 1;
+    var imgAR = imgW / imgH;
+    var contAR = this.containerWidth / this.containerHeight;
+
+    var scaleX = 1;
+    var scaleY = 1;
+
+    // mimic object-fit: cover
+    if (contAR > imgAR) {
+      // container wider -> crop vertically
+      scaleY = imgAR / contAR;
+    } else {
+      // container taller -> crop horizontally
+      scaleX = contAR / imgAR;
+    }
+
+    return { x: scaleX, y: scaleY };
+  };
+
+  DisplaceSliderInstance.prototype._updateTextureScales = function (tex1, tex2) {
+    if (!this.material) return;
+
+    var s1 = this._computeScaleForTex(tex1);
+    var s2 = this._computeScaleForTex(tex2 || tex1);
+
+    this.material.uniforms.uScale1.value.set(s1.x, s1.y);
+    this.material.uniforms.uScale2.value.set(s2.x, s2.y);
+  };
+
   DisplaceSliderInstance.prototype._setStaticImage = function (url) {
     var self = this;
     if (!url) return;
 
     this._loadTexture(url, function (tex) {
       if (!tex || !self.material) return;
+
+      self._updateTextureScales(tex, tex);
       self.material.uniforms.uTexture1.value = tex;
       self.material.uniforms.uTexture2.value = tex;
       self.material.uniforms.uProgress.value = 1.0;
 
-      // Bind at least a default displacement so we’re consistent
       self._loadDispTexture(self.sliderDefaultKey, function (dtex) {
         if (dtex && self.material) {
           self.material.uniforms.uDisp.value = dtex;
@@ -337,13 +374,19 @@
     this.renderer.render(this.scene, this.camera);
   };
 
+  function easeInOutCubic(t) {
+    return t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
   DisplaceSliderInstance.prototype._animate = function (from, to, duration, onUpdate, onComplete) {
     var start = performance.now();
     var self = this;
 
     function loop(now) {
       var t = Math.min(1, (now - start) / (duration * 1000));
-      var eased = t * (2 - t); // easeOutQuad
+      var eased = easeInOutCubic(t);
       var value = from + (to - from) * eased;
       onUpdate(value);
       self._render();
@@ -357,19 +400,14 @@
     requestAnimationFrame(loop);
   };
 
-  // Decide which displacement key to use for this transition
   DisplaceSliderInstance.prototype._getDispKeyForTransition = function (oldIndex, newIndex) {
     var newKey = this.slideDispKeys[newIndex] || null;
     var oldKey = this.slideDispKeys[oldIndex] || null;
 
-    // If only old has custom -> old
     if (oldKey && !newKey) return oldKey;
-    // If only new has custom -> new
     if (newKey && !oldKey) return newKey;
-    // If both have custom -> new (target wins)
     if (oldKey && newKey) return newKey;
 
-    // Else fallback to slider default or global default
     if (this.sliderDefaultKey && DISP_MAPS[this.sliderDefaultKey]) return this.sliderDefaultKey;
     return DEFAULT_KEY;
   };
@@ -390,6 +428,8 @@
             self.isTransitioning = false;
             return;
           }
+
+          self._updateTextureScales(tex1, tex2);
           self.material.uniforms.uTexture1.value = tex1;
           self.material.uniforms.uTexture2.value = tex2;
           self.material.uniforms.uDisp.value     = dtex;
@@ -403,7 +443,7 @@
               self.material.uniforms.uProgress.value = v;
             },
             function () {
-              // After the animation, lock in the new image as a clean, undistorted frame
+              // lock in new image as clean frame
               self.material.uniforms.uTexture1.value = self.material.uniforms.uTexture2.value;
               self.material.uniforms.uProgress.value = 1.0;
               self.isTransitioning = false;
@@ -459,9 +499,8 @@
     var self = this;
     function resize() {
       if (!self.renderer) return;
-      var width = self.mask.clientWidth || 10;
-      var height = self.mask.clientHeight || 10;
-      self.renderer.setSize(width, height);
+      self._updateContainerSize();
+      self.renderer.setSize(self.containerWidth, self.containerHeight);
       self._render();
     }
     window.addEventListener('resize', resize);
