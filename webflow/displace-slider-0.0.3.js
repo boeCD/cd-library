@@ -1,25 +1,26 @@
 /*!
- * WebflowDisplaceSlider v0.2
+ * WebflowDisplaceSlider v0.3
  * Displacement-based slide transitions for selected Webflow sliders.
- * Requires THREE (three.js r120+ recommended).
+ * Requires THREE (three.js r134 recommended).
  *
  * Usage:
- *   1) Add three.js before this script:
- *      <script src="/assets/js/three.r134.min.js"></script>
- *      <script src="/assets/js/webflow-displace-slider.js"></script>
+ *   1) Include three.js before this file:
+ *      <script src="https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/vendors/three-0.134.0.min.js"></script>
+ *      <script src="https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/displace-slider-0.0.1.js"></script>
  *
  *   2) On any Webflow slider you want to affect, set:
  *      data-displace-slider="true"
- *      data-disp-default="cool-1"    (optional, slider-level default map)
+ *      data-disp-default="height"    (optional, slider-level default map)
  *
  *   3) On slide images (optional per-image override):
- *      <img src="..." data-disp-map="liquid-2">
+ *      <img src="..." data-disp-map="fluid">
  *
  *   Displacement map priority for a transition old -> new:
- *     1. new slide's data-disp-map
- *     2. old slide's data-disp-map
- *     3. slider's data-disp-default
- *     4. script DEFAULT_KEY fallback
+ *     1. if only old has custom -> oldKey
+ *     2. if only new has custom -> newKey
+ *     3. if both have custom -> newKey
+ *     4. slider's data-disp-default
+ *     5. global DEFAULT_KEY
  */
 
 (function (global) {
@@ -34,35 +35,31 @@
   // ---------------------------------------------------------------------------
 
   // Key used if nothing is defined on slider or images.
-  var DEFAULT_KEY = 'default';
+  var DEFAULT_KEY = 'height';
 
-  // Displacement map registry: fill URLs later.
-  // Example:
-  //   'cool-1':   'https://raw.githubusercontent.com/.../cool-1.png',
-  //   'liquid-2': 'https://raw.githubusercontent.com/.../liquid-2.png',
+  // Displacement map registry.
+  // You already host these here:
+  //   https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/
   var DISP_MAPS = {
-    // Fallback used when nothing else is defined
+    // Fallback / allrounder
     'default': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/heightMap.png',
 
-    // Clean dot-pattern displacement
+    // Clean dot pattern
     'dot': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/dot.jpg',
 
-    // Fluid / liquid-style distortions
+    // Liquid / fluid style
     'fluid': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/fluid.jpg',
 
-    // Height-based displacement (good all-rounder)
+    // Height-based displacement (same as default key "height")
     'height': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/heightMap.png',
 
-    // Organic ramen-like wave texture
+    // Organic / noisy
     'ramen': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/ramen.jpg',
 
-    // Stripes vertical
-    'strip': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/strip.png',
-
-    // Stripes variation
+    // Stripe variations
+    'strip':   'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/strip.png',
     'stripe1': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/stripe1.png'
   };
-
 
   // Polling interval: we just check which slide Webflow marks as active.
   var POLL_INTERVAL = 200; // ms
@@ -101,8 +98,8 @@
     this.material = null;
     this.mesh = null;
 
-    this.texCache = {}; // url -> THREE.Texture
-    this.dispTexCache = {}; // key -> THREE.Texture
+    this.texCache = {};      // url -> THREE.Texture
+    this.dispTexCache = {};  // key -> THREE.Texture
 
     this.overlay = null;
     this.pollTimer = null;
@@ -203,6 +200,7 @@
       '}'
     ].join('\n');
 
+    // NEW fragment shader: no distortion at 0 and 1 (clean images), max in the middle
     var fragmentShader = [
       'uniform sampler2D uTexture1;',
       'uniform sampler2D uTexture2;',
@@ -213,11 +211,18 @@
 
       'void main() {',
       '  vec4 disp = texture2D(uDisp, vUv);',
-      '  vec2 dispVec = (disp.rg * 2.0 - 1.0) * uIntensity;',
-      '  vec2 uv1 = vUv + dispVec * (1.0 - uProgress);',
-      '  vec2 uv2 = vUv - dispVec * uProgress;',
+      '  vec2 dispVec = (disp.rg * 2.0 - 1.0);',
+
+      // strength peaks at progress ~0.5 and is 0 at 0 and 1
+      '  float strength = uIntensity * (1.0 - abs(0.5 - uProgress) * 2.0);',
+
+      // old image pushed one way, new image the opposite way
+      '  vec2 uv1 = vUv + dispVec * strength * (1.0 - uProgress);',
+      '  vec2 uv2 = vUv - dispVec * strength * uProgress;',
+
       '  vec4 tex1 = texture2D(uTexture1, uv1);',
       '  vec4 tex2 = texture2D(uTexture2, uv2);',
+
       '  gl_FragColor = mix(tex1, tex2, uProgress);',
       '}'
     ].join('\n');
@@ -313,7 +318,7 @@
       self.material.uniforms.uTexture2.value = tex;
       self.material.uniforms.uProgress.value = 1.0;
 
-      // Ensure some displacement is bound (fallback/default) for consistency
+      // Bind at least a default displacement so we’re consistent
       self._loadDispTexture(self.sliderDefaultKey, function (dtex) {
         if (dtex && self.material) {
           self.material.uniforms.uDisp.value = dtex;
@@ -357,9 +362,15 @@
     var newKey = this.slideDispKeys[newIndex] || null;
     var oldKey = this.slideDispKeys[oldIndex] || null;
 
-    if (newKey) return newKey;
-    if (oldKey) return oldKey;
-    if (this.sliderDefaultKey) return this.sliderDefaultKey;
+    // If only old has custom -> old
+    if (oldKey && !newKey) return oldKey;
+    // If only new has custom -> new
+    if (newKey && !oldKey) return newKey;
+    // If both have custom -> new (target wins)
+    if (oldKey && newKey) return newKey;
+
+    // Else fallback to slider default or global default
+    if (this.sliderDefaultKey && DISP_MAPS[this.sliderDefaultKey]) return this.sliderDefaultKey;
     return DEFAULT_KEY;
   };
 
@@ -392,7 +403,11 @@
               self.material.uniforms.uProgress.value = v;
             },
             function () {
+              // After the animation, lock in the new image as a clean, undistorted frame
+              self.material.uniforms.uTexture1.value = self.material.uniforms.uTexture2.value;
+              self.material.uniforms.uProgress.value = 1.0;
               self.isTransitioning = false;
+              self._render();
             }
           );
         });
@@ -471,13 +486,11 @@
     });
   }
 
-  // Expose for manual re-init if needed (e.g. AJAX-added sliders)
   global.WebflowDisplaceSlider = {
     initAll: initAll,
-    _DISP_MAPS: DISP_MAPS // for editing/inspection in console if needed
+    MAPS: DISP_MAPS
   };
 
-  // Auto-init on DOM ready
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setTimeout(initAll, 0);
   } else {
