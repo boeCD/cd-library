@@ -1,5 +1,5 @@
 /*!
- * WebflowDisplaceSlider v0.5
+ * WebflowDisplaceSlider v0.6
  * Displacement-based slide transitions for selected Webflow sliders.
  * Requires THREE (three.js r134 recommended).
  *
@@ -48,8 +48,8 @@
   };
 
   var POLL_INTERVAL       = 200;   // ms
-  var TRANSITION_DURATION = 1.6;   // seconds
-  var DISPLACE_INTENSITY  = 0.22;  // softer distortion
+  var TRANSITION_DURATION = 1.4;   // seconds
+  var DISPLACE_INTENSITY  = 0.3;   // how strong the new image is displaced at start
 
   var ATTR_SLIDER_ENABLE  = 'data-displace-slider';
   var ATTR_SLIDER_DEFAULT = 'data-disp-default';
@@ -190,7 +190,9 @@
       '}'
     ].join('\n');
 
-    // object-fit: cover scaling + smooth displacement
+    // New behavior:
+    // - old image: always sharp (no displacement)
+    // - new image: displaced strongly at start, then relaxes to clean
     var fragmentShader = [
       'uniform sampler2D uTexture1;',
       'uniform sampler2D uTexture2;',
@@ -204,26 +206,26 @@
       'void main() {',
       '  vec2 center = vec2(0.5);',
 
-      // base UVs with cover-scaling
+      // base UVs with cover scaling
       '  vec2 baseUv1 = (vUv - center) * uScale1 + center;',
       '  vec2 baseUv2 = (vUv - center) * uScale2 + center;',
 
       '  vec4 disp = texture2D(uDisp, vUv);',
       '  vec2 dispVec = (disp.rg * 2.0 - 1.0);',
 
-      // smooth bell-shaped strength (0 at 0/1, max at 0.5)
-      '  float p = uProgress;',
-      '  float bell = 1.0 - pow((p - 0.5) * 2.0, 2.0);',
-      '  bell = max(bell, 0.0);',
-      '  float strength = uIntensity * bell;',
+      // displacement strongest at start, fades to 0 at end
+      '  float dispAmt = uIntensity * (1.0 - uProgress);',
 
-      '  vec2 uv1 = baseUv1 + dispVec * strength * (1.0 - p);',
-      '  vec2 uv2 = baseUv2 - dispVec * strength * p;',
+      // old image: no displacement
+      '  vec2 uvOld = baseUv1;',
 
-      '  vec4 tex1 = texture2D(uTexture1, uv1);',
-      '  vec4 tex2 = texture2D(uTexture2, uv2);',
+      // new image: displaced in the beginning, relaxing to baseUv2
+      '  vec2 uvNew = baseUv2 + dispVec * dispAmt;',
 
-      '  gl_FragColor = mix(tex1, tex2, p);',
+      '  vec4 tex1 = texture2D(uTexture1, uvOld);',
+      '  vec4 tex2 = texture2D(uTexture2, uvNew);',
+
+      '  gl_FragColor = mix(tex1, tex2, uProgress);',
       '}'
     ].join('\n');
 
