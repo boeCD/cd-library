@@ -41,14 +41,28 @@
   //   'cool-1':   'https://raw.githubusercontent.com/.../cool-1.png',
   //   'liquid-2': 'https://raw.githubusercontent.com/.../liquid-2.png',
   var DISP_MAPS = {
-    // TODO: put your real links here:
-    'default':  'PATH_TO_DEFAULT_DISP_MAP.png',
-    'cool-1':  'PATH_TO_COOL_1.png',
-    'cool-2':  'PATH_TO_COOL_2.png',
-    'liquid-1':'PATH_TO_LIQUID_1.png',
-    'liquid-2':'PATH_TO_LIQUID_2.png',
-    'glitch-1':'PATH_TO_GLITCH_1.png'
+    // Fallback used when nothing else is defined
+    'default': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/heightMap.png',
+
+    // Clean dot-pattern displacement
+    'dot': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/dot.jpg',
+
+    // Fluid / liquid-style distortions
+    'fluid': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/fluid.jpg',
+
+    // Height-based displacement (good all-rounder)
+    'height': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/heightMap.png',
+
+    // Organic ramen-like wave texture
+    'ramen': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/ramen.jpg',
+
+    // Stripes vertical
+    'strip': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/strip.png',
+
+    // Stripes variation
+    'stripe1': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/stripe1.png'
   };
+
 
   // Polling interval: we just check which slide Webflow marks as active.
   var POLL_INTERVAL = 200; // ms
