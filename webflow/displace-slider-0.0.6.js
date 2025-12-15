@@ -44,6 +44,7 @@
     'height':  'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/heightMap.png',
     'ramen':   'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/ramen.jpg',
     'strip':   'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/strip.png',
+    'diamond':   'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/diamond.png',
     'stripe1': 'https://cdn.jsdelivr.net/gh/boeCD/cd-library@main/webflow/disp-map/stripe1.png'
   };
 
